@@ -1,0 +1,52 @@
+{
+  "name": "cliopatra",
+  "version": "0.0.1",
+  "description": "Low level utility for parsing command line args and wrapping executible scripts",
+  "main": "cliopatra.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/qodeninja/cliopatra.git"
+  },
+  "keywords": [
+    "cliopatra",
+    "cleopatra",
+    "clio",
+    "cleo",
+    "cli",
+    "args",
+    "agrv",
+    "bin",
+    "bash",
+    "opts",
+    "options",
+    "params",
+    "command",
+    "optimist",
+    "minimist",
+    "commander",
+    "executible",
+    "shell",
+    "qode",
+    "qodeninja",
+    "qodeparty",
+    "codeparty",
+    "qore",
+    "core",
+    "code"
+  ],
+  "devDependencies": {
+    "microtime": "latest",
+    "nodeunit": "latest",
+    "benchmark": "latest"
+  },
+  "author": "Avi Damasi <dev@qodeninja.com> (http://qodeparty.com/dist/cliopatra)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/qodeninja/cliopatra/issues"
+  },
+  "homepage": "https://github.com/qodeninja/cliopatra",
+  "readmeFilename": "README.md",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
