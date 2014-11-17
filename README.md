@@ -1,6 +1,6 @@
 # Cliopatra
 
-  A complete and lightweight solution for Node.js command-line interfaces, inspired by Perl's [Getopt](http://search.cpan.org/~jv/Getopt-Long-2.42/), and following the [POSIX syntax](http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html) for command line options.
+  A lightweight solution for Node.js command-line interfaces, inspired by Perl's [Getopt](http://search.cpan.org/~jv/Getopt-Long-2.42/), and following the [POSIX syntax](http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html) for command line options.
 
 ## Installation
 
@@ -15,7 +15,7 @@
 #!/usr/bin/env node
 "use strict" 
   var cliopatra = require('cliopatra');
-  var program   = cliopatra.option('-s= ^we &ui --silly, 'description')
+  var program   = cliopatra.option('-s= ^we &ui --silly', 'description')
                          .option('-c, --color [ flag ]') 
                          .option('-v, --verbose [ flag ]')
                          .parse( process.argv );
