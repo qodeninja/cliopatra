@@ -1,47 +1,48 @@
-Cliopatra
-=====
+# Cliopatra
 
-Low level utility for parsing command line args and wrapping executible scripts. 
+  A complete and lightweight solution for Node.js command-line interfaces, inspired by Perl's [Getopt](http://search.cpan.org/~jv/Getopt-Long-2.42/), and following the [POSIX syntax](http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html) for command line options.
 
-```javascript
-/*
+## Installation
 
- ( fn( o ){ ... } )( obj(){} )
+    $ npm install cliopatra
 
-*/
+## Style
 
-"use strict";
+  As a matter of style you can use the `clio` instead of `cliopatra`; code examples and API docs use these two interchangebly.
 
-    /*
-    req = {};
-    req.createNode = function (config, moduleName, url) {
-        var node = config.xhtml ?
-                document.createElementNS('http://www.w3.org/1999/xhtml', 'html:script') :
-                document.createElement('script');
-        node.type = config.scriptType || 'text/javascript';
-        node.charset = 'utf-8';
-        node.async = true;
-        return node;
-    };
-    */
-
-
-  ( function devoteFactory( c ){
-
-    //# WHERE TO ATTACH FN/OBJECT
-
-    //node
-    //jquery
-    //amd/require
-    //browser
-    console.log( 'calling devoteFactory' );
-    return c;
-    
-
-
-  })( function devoteObject( ){ 
-
-    console.log( 'calling devoteObject after factory returns' );
-
-  })( '', [] );
+```js
+  var clio = require('cliopatra');
 ```
+
+## Quick Start Example
+
+
+```js
+#!/usr/bin/env node
+"use strict" 
+
+  var cliopatra = require('cliopatra');
+
+  var program = cliopatra.option('-s= ^we &ui --silly --nilly --illy (f1) ? ? ?', 'ok girl')
+                         .option('-c, --color [ flag ]') 
+                         .option('-v, --verbose [ flag ]')
+                         .parse( process.argv );
+
+  program.run();
+```
+
+## Cliopatra Settings
+
+Cliopatra can be configured to use short-cut arguments and automatically parse and load option rules from an object or a JSON file to make some aspects of your executable more automated.
+
+## Cliopatra#settings( String[,String...] )
+
+*AUTO_SHORT
+*AUTO_BOOLEAN
+*AUTO_LOAD
+*RULES_OVERWRITE
+*USE_COMMON_FLAGS
+*USE_DEBUG_FLAG
+*MODE_INTERACTIVE
+*MODE_PIPETHROUGH
+
