@@ -14,11 +14,11 @@
 ```js
 #!/usr/bin/env node
 "use strict" 
-  var cliopatra = require('cliopatra');
-  var program   = cliopatra.option('-s= ^we &ui --silly', 'description')
-                         .option('-c, --color [ flag ]') 
-                         .option('-v, --verbose [ flag ]')
-                         .parse( process.argv );
+  var clio      = require('cliopatra');
+  var program   = clio.option('-s= ^we &ui --silly', 'description')
+                      .option('-c, --color [ flag ]') 
+                      .option('-v, --verbose [ flag ]')
+                      .parse( process.argv );
 
   program.run();
 ```

@@ -1,18 +1,15 @@
   
 
 
-  function autofile(){
+
+  function autoload(){
     //check for env_file
     //check for ./clio.json
     //check for ../clio.json
     //check for ../conf/clio.json
   }
 
-  function autoload(){
-  
-  }
-
-  function commonOptions(){
+  function common(){
 
   }
 
@@ -20,32 +17,31 @@
 // Option Parsing
 /////////////////////////////////////////////////////////////////////////////*/
 
-  function optionType(){
+  function ruleBuilder(){
 
   }
 
   //tests showed str[] perf better than indexOf and RegEx
-  function optionType( flag ){
-    let len = flag.length;
-    let delim = flag[0];
-    if( len >= 2 ){
-      if( delim === '-' ){
-        if( flag[1] !== '-' ){ //some kind of acceptible option
-          if( len > 2 ) return COMPLEX_OPTION;//must be shortflag string, or invalid hmm
-          if( len === 2 ) return SHORT_OPTION;//shortflag
-        }else{
-          if( len === 2 ) return VARIANT_OPTION;// --
-          if( len >= 3 && flag[2] === 'n' && flag[3] === 'o') return LONG_NO_OPTION;
-          if( len > 2 ) return LONG_OPTION; //long option flag
+  function flagParser( flag ){
+    var len = flag.length || 0;
+
+    if( len >= 2 && flag[0] === '-'){
+      //short flag
+      if( flag[1] !== '-' ){ 
+        if( len > 2 ) return 'complex'
+        return 'short';
+      }else{
+      //long flag, at least -- 
+        if( len === 2 ) return 'variant';// --
+        if( len >= 4 && flag[2] === 'n' && flag[3] === 'o' ){
+          if( len > 4 && flag[4] === '-' ) return 'nodash'; //--no-xxx
+          return 'nolong'; //--noxxx
         }
+        return 'long'; //--xxx
       }
-      var c = charLookup[ delim ];
-      if( c ) return c;
     }
-    if( len === 1 ){
-      if( delim === '?' ) return CONF_OPT;
-    }
-    return UNKNOWN_OPTION; //not an option flag
+    if( flag[0] === '-' ) return 'stdin';
+    return false;
   }
 
 /*/////////////////////////////////////////////////////////////////////////////
@@ -54,7 +50,7 @@
 
   function type( x ){
     if( x == null ) return obj + "";
-    let t = typeof x;
+    var t = typeof x;
     return ( t === "object" || t === "function" ? lookup[ toString.call( x ) ] || "object" : t ); 
   }
 
@@ -71,4 +67,13 @@
   }
 
 
-  module.exports = {};
+  module.exports = {
+    type        : type,
+    isUndefined : isUndefined,
+    isString    : isString,
+    isNum       : isNum,
+    flagParser  : flagParser,
+    ruleBuilder : ruleBuilder,
+    autoload    : autoload,
+    common      : common
+  };

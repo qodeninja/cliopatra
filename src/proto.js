@@ -20,20 +20,19 @@ var clio;
 // 
 // option('-s|--short+ ^xrt','set the short option', func( name, value ){}
 
-module.exports = function( conf, utils ){
+module.exports = function( conf, util ){
 
-  var util = utils || require('./utils.js');
+
 
   function Cliopatra( spec ){
     spec = spec || {};
     this.data = spec.data || { rules: [], flags: {}, error: false };
-    this.util = spec.util;
-    this.conf = spec.conf;
+    //this.util = spec.util;
+    //this.conf = spec.conf;
     return this;
   };
 
 
-  //support functions
   Cliopatra.prototype.getRule = function(){
 
   }
@@ -46,34 +45,19 @@ module.exports = function( conf, utils ){
 
   }
 
-
-  //exposed functions
-
   Cliopatra.prototype.option = function( flag, desc, handler ){
-
-    return this;
-  }
-
-
-  Cliopatra.prototype.desc = function( flag, desc ){
-    //rule must exist to update description
-    return this;
-  }
-
-  Cliopatra.prototype.file = function( filename ){
-
     return this;
   }
 
   Cliopatra.prototype.rule = function( rules ){
-
     return this;
   }
 
   Cliopatra.prototype.parse = function( err, data ){
-
     return this;
   }
+
+  return Cliopatra;
 
 }
 

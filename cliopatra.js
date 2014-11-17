@@ -5,4 +5,6 @@
 // Includes 
 /////////////////////////////////////////////////////////////////////////////*/
 
-var Cliopatra = require('./src');
+var clio = require('./src')(;
+
+console.log( clio );
