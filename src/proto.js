@@ -26,9 +26,7 @@ module.exports = function( conf, util ){
 
   function Cliopatra( spec ){
     spec = spec || {};
-    this.data = spec.data || { rules: [], flags: {}, error: false };
-    //this.util = spec.util;
-    //this.conf = spec.conf;
+    this.data = spec.data || { args:{}, rules:[], flags:{}, error: false };
     return this;
   };
 
@@ -59,19 +57,31 @@ module.exports = function( conf, util ){
 
     for( var i=0, len = opts.length; i < len; i++ ){
       var opt = opts[i];
-
       util.ruleBuilder( opt, rule, data );
-
       if( desc ) rule.desc = desc;
-      if( fn   ) rule.hanlder = fn;
-
+      if( fn   ) rule.fn   = fn;
     }
 
     //setup flags after rule is built
     var flags  = data.flags;
+    var long   = rule['long'], short = rule['short'];
     var ruleID = data.rules.length || 0;
-    if( rule.short ) flags[ rule['short'] ] = ruleID;
-    if( rule.long  ) flags[ rule['long']  ] = ruleID;
+
+    if( short ) flags[ short ] = ruleID;
+
+    if( long ){
+      console.log('see long option', conf);
+        
+     flags[ long ] = ruleID;
+      //create short from long
+      if( conf['autoshort'] ){
+        console.log('see autoshort option');
+        var sh = long[0];
+        if( sh ){ flags[ sh ] = ruleID; }
+        if( !short ){ rule['short'] = sh; }
+      }
+    }
+
 
     data.rules.push( rule );
 
@@ -79,6 +89,11 @@ module.exports = function( conf, util ){
     return this;
   }
 
+  Cliopatra.prototype.enable = function( key ){
+    key = key.toLowerCase();
+    if( !util.isUndefined( conf[key]) ) conf[key] = true;
+    return this;
+  }
 
   Cliopatra.prototype.rule = function( rules ){
     return this;
@@ -89,7 +104,12 @@ module.exports = function( conf, util ){
   Cliopatra.prototype.alias   = function(){}
   Cliopatra.prototype.require = function(){}
 
-  Cliopatra.prototype.parse = function( err, data ){
+  Cliopatra.prototype.argv    = function(){
+    this.parse( process.argv );
+    return this;
+  }
+
+  Cliopatra.prototype.parse = function( data ){
     console.log('yay parse');
     var data = this.data;
     return this;

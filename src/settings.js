@@ -1,7 +1,7 @@
 
   var settings = {
     env_file    : 'NODE_CLIO_FILE',
-    autoload    : true,
+    autoload    : false,
     autobool    : false,
     common      : false,
     interactive : false,
@@ -9,4 +9,4 @@
     overwrite   : false
   };
 
-  module.export = settings;
+  module.exports = settings;

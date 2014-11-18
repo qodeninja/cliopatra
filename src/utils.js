@@ -15,16 +15,15 @@
 /////////////////////////////////////////////////////////////////////////////*/
 
   var charLookup = {
-    '*' : 'required',
     '<' : 'required',
     '[' : 'optional',
     '^' : 'xor',
     '&' : 'group',
     '|' : 'alias',
     '@' : 'collect',
-    '?' : 'optional',
-    '!' : 'boolean',
-    '=' : 'keyed'
+    '?' : 'boolean',
+    '!' : 'demand',
+    '+' : 'increment'
   };
 
 
@@ -36,28 +35,24 @@
     var type  = flagParser( flag );
         flag  = flag.replace(/-|&|\^|\|\*/gm, '');
 
-    var section = rule[ type ] || rule[ delim ] || false;
-    var undef   = ( typeof section === 'undefined' );
+    var section = rule[ type ] || rule[ delim ];
+    var undef   = ( typeof section === 'undefined');
 
-    if( !delim ){
+    if( type ){
 
-      if( type === 'complex' || type === 'long' ){
-        complexParser( flag, rule );
-      } 
-
-      if( type === 'short'   || type === 'long' ){
+      if( type === 'short' || type === 'long' ){
         if( section ){
           rule.alias = rule.alias || [];        
           rule.alias.push( flag );
         }else{
           rule[ type ] = flag;
         }
-
-
-        
       }
 
-    }else{
+    }
+
+    //first char is not - and is not alnum
+    if( delim ){
 
       if( delim === 'group'    || delim === 'xor' ){
         if( undef ) section = rule[ delim ] = '';
@@ -65,12 +60,16 @@
       }
 
       if( delim === 'required' || delim === 'optional' ){
+        console.log('building rule for req/optl', delim);
+        if( rule['boolean'] ) throw new Error('Invalid Option, boolean options cannot have arguments');           
         if( undef ) rule[ delim ] = 0;
         rule[ delim ] += 1;
       } 
 
-      if( delim === 'boolean' ){
-        booleanParser( flag, rule );
+      if( delim === 'boolean' || delim === 'increment' ){
+        if( rule.required || rule.optional ) throw new Error('Invalid Option, options with argument-options cannot be auto-set (boolean/increment)');  
+        rule[ delim ]    = true;
+        rule[ 'canKey' ] = true; //allow -x=val
       }
 
       if( delim === 'collect' ){
@@ -79,22 +78,15 @@
 
     }
 
-
-
-  }
-
-  function booleanParser( flag ){
+    if( !delim && !type ) throw new Error('Invalid Option settings option('+ flag + type + ')');
 
   }
 
-  function complexParser( flag ){
-    var vals = flag.split(/[:=]+/);
-  }
+
 
   //tests showed str[] perf better than indexOf and RegEx
   function flagParser( flag ){
     var len = flag.length || 0;
-
     if( len >= 2 && flag[0] === '-'){
       //short flag
       if( flag[1] !== '-' ){ 
@@ -149,6 +141,5 @@
     isNum       : isNum,
     flagParser  : flagParser,
     ruleBuilder : ruleBuilder,
-    autoload    : autoload,
-    common      : common
+    autoload    : autoload
   };

@@ -9,5 +9,5 @@ var clio = require('./src').clio;
 
 console.log( clio );
 
-clio.option('-s --short !', 'flag', 'This is a shortflag' );
+clio.enable('autoshort').option('--short ! <arg1> <arg2>', 'flag', 'This is a shortflag' );
 clio.parse();
