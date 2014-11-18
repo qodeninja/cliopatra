@@ -18,6 +18,7 @@
   var program   = clio.enable('autoshort')
                       .option('--short ! <arg1> <arg2>', 'This is a required flag with 2 reqd args')
                       .option('--trial ?!', 'This is a required boolean flag' )
+                      .option('--licks+', 'This is a required incrementing flag' )
                       .argv();
 
   program.run();

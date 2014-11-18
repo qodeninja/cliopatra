@@ -55,43 +55,36 @@
 // Option Parsing
 /////////////////////////////////////////////////////////////////////////////*/
 
-  var charLookup = {
-    '<' : 'required',
-    '[' : 'optional',
-    '^' : 'xor',
-    '&' : 'group',
-    '|' : 'alias',
-    '@' : 'collect',
-    '?' : 'boolean',
-    '!' : 'demand',
-    '+' : 'increment'
-  };
+  function ruleBuilder( flag, rule, data ){
+    rule = rule || {};
+    findDelim ( flag, rule );
+    findOption( flag, rule );    
+  }
 
-  var charRegEx  = /\&|@|!|\-|&|\^|\||\?|\+|\</gm;
-  var alnumRegex = /[a-zA-Z0-9\-]/gm;
-
-  function lookupChar( char ){
-    if(char === '<'){ 
-      return 'required'; 
-    }else if(char === '['){ 
-      return 'optional';
-    }else if(char === '^'){ 
-      return 'xor';
-    }else if(char === '&'){ 
-      return 'group';
-    }else if(char === '|'){ 
-      return 'alias';
-    }else if(char === '@'){ 
-      return 'collect';
-    }else if(char === '?'){ 
-      return 'boolean';
-    }else if(char === '!'){ 
-      return 'demand';
-    }else if(char === '+'){ 
-      return 'increment';
+  //tests showed str[] perf better than indexOf and RegEx
+  function flagParser( flag ){
+    var len = flag.length || 0;
+    if( !flag || len === 0 || flag[0] !== '-' ) return false;
+    if( len >= 2 && flag[0] === '-'){
+      //short flag
+      if( flag[1] !== '-' ){ 
+        if( len > 2 ) return 'complex'
+        return 'short';
+      }else{
+      //long flag, at least -- 
+        if( len === 2 ) return 'variant';// --
+        if( len >=  4 && flag[2] === 'n' && flag[3] === 'o' ){
+          if( len > 4 && flag[4] === '-' ) return 'nodash'; //--no-xxx
+          return 'nolong'; //--noxxx
+        }
+        return 'long'; //--xxx
+      }
     }
+    if( flag[0] === '-' ) return 'stdin';
     return false;
   }
+
+
 
   function ruleDelim( delim, rule ){
     var section = rule[ delim ];
@@ -141,8 +134,6 @@
   }
 
   function findOption( flag, rule ){
-    rule = rule || {};
-
     var type    = flagParser( flag );
     var section = rule[ type ];
     var undef   = ( typeof section === 'undefined');
@@ -162,109 +153,44 @@
   }
 
 
-  function ruleBuilder( flag, rule, data ){
-    rule = rule || {};
-    findDelim ( flag, rule );
-    findOption( flag, rule );
-    
-  }
 
+  var charLookup = {
+    '<' : 'required',
+    '[' : 'optional',
+    '^' : 'xor',
+    '&' : 'group',
+    '|' : 'alias',
+    '@' : 'collect',
+    '?' : 'boolean',
+    '!' : 'demand',
+    '+' : 'increment'
+  };
 
+  var charRegEx  = /\&|@|!|\-|&|\^|\||\?|\+|\</gm;
+  var alnumRegex = /[a-zA-Z0-9\-]/gm;
 
-  function _ruleBuilder( flag, rule, data ){
-    rule = rule || {};
-
-    //var short,long;
-    var len   = flag.length;
-    var delim = charLookup[ flag[0] ] || charLookup[ flag[len-1] ];
-    //console.log( 'delims', delim, flag);
-    ruleDelim( flag, rule, data );
-    //lookahead for more delims
-    // if( delim && !(delim === 'required' || delim === 'optional') && flag.length > 1 ){
-    //   ruleBuilder( flag.substr(1) , rule, data );
-    // }
-
-    var type  = flagParser( flag );
-        flag  = flag.replace(charRegEx, '');
-
-    //var section = rule[ type ] || rule[ delim ];
-    //var undef   = ( typeof section === 'undefined');
-
-    // if( type ){
-
-    //   if( type === 'short' || type === 'long' ){
-    //     if( section ){
-    //       rule.alias = rule.alias || [];        
-    //       rule.alias.push( flag );
-    //     }else{
-    //       rule[ type ] = flag;
-    //     }
-    //   }
-
-    // }
-
-    //first char is not - and is not alnum
-    // if( delim ){
-
-    //   if( delim === 'group'    || delim === 'xor' ){
-    //     if( undef ) section = rule[ delim ] = '';
-    //     rule[ delim ] = [ section, flag ].join('');
-    //   }
-
-    //   if( delim === 'required' || delim === 'optional' ){
-    //     if( rule['boolean'] ) throw new Error('Invalid Option, boolean options cannot have arguments');           
-    //     if( undef ) rule[ delim ] = 0;
-    //     rule[ delim ] += 1;
-    //   } 
-
-    //   if( delim === 'boolean' || delim === 'increment' ){
-    //     if( rule.required || rule.optional ) throw new Error('Invalid Option, options with argument-options cannot be auto-set (boolean/increment)');  
-    //     if( rule.boolean  || rule.increment )  throw new Error('Invalid Option, auto-set option already specified');
-    //     rule[ delim ]    = true;
-    //     rule[ 'canKey' ] = true; //allow -x=val
-    //     rule[ 'accept' ] = ( delim === 'boolean' ? 'boolean' : 'integer' );
-    //   }
-
-    //   if( delim === 'demand' ){
-    //     rule[ delim ] = true;
-    //   }
-
-    //   if( delim === 'collect' ){
-    //     console.warn('collect option not implemented');
-    //   }
-
-    // }
-
-    if( !delim && !type ) throw new Error('Invalid Option settings option('+ flag + type + ')');
-
-  }
-
-
-
-  //tests showed str[] perf better than indexOf and RegEx
-  function flagParser( flag ){
-    var len = flag.length || 0;
-    if( !flag || len === 0 || flag[0] !== '-' ) return false;
-    if( len >= 2 && flag[0] === '-'){
-      //short flag
-      if( flag[1] !== '-' ){ 
-        if( len > 2 ) return 'complex'
-        return 'short';
-      }else{
-      //long flag, at least -- 
-        if( len === 2 ) return 'variant';// --
-        if( len >= 4 && flag[2] === 'n' && flag[3] === 'o' ){
-          if( len > 4 && flag[4] === '-' ) return 'nodash'; //--no-xxx
-          return 'nolong'; //--noxxx
-        }
-        return 'long'; //--xxx
-      }
+  function lookupChar( char ){
+    if(char === '<'){ 
+      return 'required'; 
+    }else if(char === '['){ 
+      return 'optional';
+    }else if(char === '^'){ 
+      return 'xor';
+    }else if(char === '&'){ 
+      return 'group';
+    }else if(char === '|'){ 
+      return 'alias';
+    }else if(char === '@'){ 
+      return 'collect';
+    }else if(char === '?'){ 
+      return 'boolean';
+    }else if(char === '!'){ 
+      return 'demand';
+    }else if(char === '+'){ 
+      return 'increment';
     }
-    if( flag[0] === '-' ) return 'stdin';
     return false;
   }
-
-
 
 /*/////////////////////////////////////////////////////////////////////////////
 // Type Checking
