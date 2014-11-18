@@ -45,17 +45,56 @@ module.exports = function( conf, util ){
 
   }
 
-  Cliopatra.prototype.option = function( flag, desc, handler ){
+/*/////////////////////////////////////////////////////////////////////////////
+// Public API
+/////////////////////////////////////////////////////////////////////////////*/
+
+
+  Cliopatra.prototype.option = function( flag, type, desc, fn ){
+
+    var data = this.data;
+        flag = flag.replace(/\s+/g,' ').trim(); //remove duplicate whitespace
+    var opts = flag.split(' ');
+    var rule = {};
+
+    for( var i=0, len = opts.length; i < len; i++ ){
+      var opt = opts[i];
+
+      util.ruleBuilder( opt, rule, data );
+
+      if( desc ) rule.desc = desc;
+      if( fn   ) rule.hanlder = fn;
+
+    }
+
+    //setup flags after rule is built
+    var flags  = data.flags;
+    var ruleID = data.rules.length || 0;
+    if( rule.short ) flags[ rule['short'] ] = ruleID;
+    if( rule.long  ) flags[ rule['long']  ] = ruleID;
+
+    data.rules.push( rule );
+
+    console.log( '---- rule >>>',  flag,  '\n', rule, '\n------\n');
     return this;
   }
+
 
   Cliopatra.prototype.rule = function( rules ){
     return this;
   }
 
+  Cliopatra.prototype.flag    = function(){}
+  Cliopatra.prototype.count   = function(){}
+  Cliopatra.prototype.alias   = function(){}
+  Cliopatra.prototype.require = function(){}
+
   Cliopatra.prototype.parse = function( err, data ){
+    console.log('yay parse');
+    var data = this.data;
     return this;
   }
+
 
   return Cliopatra;
 

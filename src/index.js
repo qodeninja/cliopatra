@@ -37,6 +37,7 @@
 /////////////////////////////////////////////////////////////////////////////*/
 
   module.exports           = create();
+  module.exports.clio      = create();
   module.exports.util      = util;
   module.exports.config    = custom;
   module.exports.Cliopatra = Cliopatra;

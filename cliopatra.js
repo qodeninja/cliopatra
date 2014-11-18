@@ -5,6 +5,9 @@
 // Includes 
 /////////////////////////////////////////////////////////////////////////////*/
 
-var clio = require('./src')(;
+var clio = require('./src').clio;
 
 console.log( clio );
+
+clio.option('-s --short !', 'flag', 'This is a shortflag' );
+clio.parse();

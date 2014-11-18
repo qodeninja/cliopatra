@@ -9,16 +9,86 @@
     //check for ../conf/clio.json
   }
 
-  function common(){
-
-  }
 
 /*/////////////////////////////////////////////////////////////////////////////
 // Option Parsing
 /////////////////////////////////////////////////////////////////////////////*/
 
-  function ruleBuilder(){
+  var charLookup = {
+    '*' : 'required',
+    '<' : 'required',
+    '[' : 'optional',
+    '^' : 'xor',
+    '&' : 'group',
+    '|' : 'alias',
+    '@' : 'collect',
+    '?' : 'optional',
+    '!' : 'boolean',
+    '=' : 'keyed'
+  };
 
+
+  function ruleBuilder( flag, rule, data ){
+    rule = rule || {};
+
+    var short,long;
+    var delim = charLookup[ flag[0] ] || false;
+    var type  = flagParser( flag );
+        flag  = flag.replace(/-|&|\^|\|\*/gm, '');
+
+    var section = rule[ type ] || rule[ delim ] || false;
+    var undef   = ( typeof section === 'undefined' );
+
+    if( !delim ){
+
+      if( type === 'complex' || type === 'long' ){
+        complexParser( flag, rule );
+      } 
+
+      if( type === 'short'   || type === 'long' ){
+        if( section ){
+          rule.alias = rule.alias || [];        
+          rule.alias.push( flag );
+        }else{
+          rule[ type ] = flag;
+        }
+
+
+        
+      }
+
+    }else{
+
+      if( delim === 'group'    || delim === 'xor' ){
+        if( undef ) section = rule[ delim ] = '';
+        rule[ delim ] = [ section, flag ].join('');
+      }
+
+      if( delim === 'required' || delim === 'optional' ){
+        if( undef ) rule[ delim ] = 0;
+        rule[ delim ] += 1;
+      } 
+
+      if( delim === 'boolean' ){
+        booleanParser( flag, rule );
+      }
+
+      if( delim === 'collect' ){
+        console.warn('collect option not implemented');
+      }
+
+    }
+
+
+
+  }
+
+  function booleanParser( flag ){
+
+  }
+
+  function complexParser( flag ){
+    var vals = flag.split(/[:=]+/);
   }
 
   //tests showed str[] perf better than indexOf and RegEx
@@ -44,6 +114,8 @@
     return false;
   }
 
+
+
 /*/////////////////////////////////////////////////////////////////////////////
 // Type Checking
 /////////////////////////////////////////////////////////////////////////////*/  
@@ -66,6 +138,9 @@
     return typeof x == "number" || (typeof x == "object" && o.constructor === Number);
   }
 
+/*/////////////////////////////////////////////////////////////////////////////
+// Exports
+/////////////////////////////////////////////////////////////////////////////*/ 
 
   module.exports = {
     type        : type,
