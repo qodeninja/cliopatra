@@ -37,12 +37,11 @@ Cliopatra can be configured to use short-cut arguments and automatically parse a
 
 ### Cliopatra#enable( String[,String...] )
 
-* AUTO_SHORT
-* AUTO_BOOLEAN
-* AUTO_LOAD
-* RULES_OVERWRITE
-* USE_COMMON_FLAGS
-* USE_DEBUG_FLAG
-* MODE_INTERACTIVE
-* MODE_PIPETHROUGH
+* autoshort   - if a long option is passed, automatically use the first alpha char as a short option
+* autoflag    - automatically support a not long flag, --flag => --no-flag, can also set flag -f=true 
+* autoload    - look for clio.json file or check if package.json has a clio section
+* overwrite   - if a rule or flag already exists overwrite with newest
+* usecommon   - enable common flags like --debug and --version
+* interactive - clio will loop until and exit option is provided --exit is added by default
+* pipe        - clio will run in silent mode and stream output to stdout
 

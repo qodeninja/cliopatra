@@ -5,6 +5,7 @@
 // Includes 
 /////////////////////////////////////////////////////////////////////////////*/
 
+
 var clio;
 
 // --verbose --noverbose --no-verbose, --verbose+ --verbose!
@@ -22,7 +23,8 @@ var clio;
 
 module.exports = function( conf, util ){
 
-
+  var timer  = util.timer;
+  var timers = util.timers;
 
   function Cliopatra( spec ){
     spec = spec || {};
@@ -43,13 +45,34 @@ module.exports = function( conf, util ){
 
   }
 
+  Cliopatra.prototype.addFlag = function( rule ){
+    if( !rule ) return false;
+    var data   = this.data;
+    var flags  = data.flags;
+    var long   = rule['long'];
+    var short  = rule['short'];
+    var ruleID = data.rules.length || 0;
+    if( short ) flags[ short ] = ruleID;
+    if( long  ){
+     flags[ long ] = ruleID;
+      //create short from long
+      if( conf['autoshort'] ){
+        var autoshort = long[0];
+        if( autoshort ){ flags[ autoshort ] = ruleID; }
+        if( !short ){ rule['short'] = autoshort; }
+      }
+    }
+
+  }
+
+
 /*/////////////////////////////////////////////////////////////////////////////
 // Public API
 /////////////////////////////////////////////////////////////////////////////*/
 
 
   Cliopatra.prototype.option = function( flag, desc, fn ){
-
+    //var next = timer('optionFn','v1');
     var data = this.data;
         flag = flag.replace(/\s+/g,' ').trim(); //remove duplicate whitespace
     var opts = flag.split(' ');
@@ -62,6 +85,7 @@ module.exports = function( conf, util ){
         util.ruleBuilder( opt, rule, data );
         if( desc ) rule.desc = desc;
         if( fn   ) rule.fn   = fn;
+        this.addFlag( rule );
       }catch(err){
         console.error('Clio parse failure at ('+opt+')', err.message);
         process.exit(1);
@@ -70,26 +94,15 @@ module.exports = function( conf, util ){
     }
 
     //setup flags after rule is built
-    var flags  = data.flags;
-    var long   = rule['long'], short = rule['short'];
-    var ruleID = data.rules.length || 0;
-    if( short ) flags[ short ] = ruleID;
-    if( long ){
-     flags[ long ] = ruleID;
-      //create short from long
-      if( conf['autoshort'] ){
-        var sh = long[0];
-        if( sh ){ flags[ sh ] = ruleID; }
-        if( !short ){ rule['short'] = sh; }
-      }
-    }
-
 
     data.rules.push( rule );
 
     console.log( '---- rule >>>',  flag,  '\n', rule, '\n------\n');
+    // next = timer( next );
+    // console.log( timers );
     return this;
   }
+
 
   Cliopatra.prototype.enable = function( key ){
     key = key.toLowerCase();

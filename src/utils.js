@@ -9,6 +9,47 @@
     //check for ../conf/clio.json
   }
 
+/*/////////////////////////////////////////////////////////////////////////////
+// Timer
+/////////////////////////////////////////////////////////////////////////////*/
+  
+  var timers = {};
+  var NANO_SECOND = 1e9;
+
+  function timer( i, v ){
+
+    if( typeof i !== 'string' ){
+      i = i[0]; 
+    }
+
+    var suite   = timers[ i ] = timers[ i ] || {}; //instantiate if it doesnt exist
+
+    v = v || suite.curr; //if v is passed use it, otherwise use cache
+
+    var version = suite[ v ]  = suite[ v ]  || {};
+
+    suite.curr = v;
+
+    if( !version.start ){
+      delete version.stop;
+      version.start  = process.hrtime();
+      //version._start = version.start[0] * NANO_SECOND + version.start[1];
+      //console.log('starting' + i + v);
+      return [i,'START'];
+    }
+
+    if( version.start ){
+      version.time = process.hrtime(version.start);
+      version.diff = (version.time[0] * 1e9 + version.time[1])/1e9;
+      //version._stop = version.stop[0] * NANO_SECOND + version.stop[1];
+      //version.diff = ( version.stop[0] * NANO_SECOND + version.stop[1] -
+      //                 version.start[0] * NANO_SECOND + version.start[1] );
+      //console.log('stopping' + i + v);
+      return [i,'STOP'];
+    }
+
+
+  };
 
 /*/////////////////////////////////////////////////////////////////////////////
 // Option Parsing
@@ -26,26 +67,87 @@
     '+' : 'increment'
   };
 
+  var charRegEx  = /\&|@|!|\-|&|\^|\||\?|\+|\</gm;
+  var alnumRegex = /[a-zA-Z0-9\-]/gm;
 
-  function ruleBuilder( flag, rule, data ){
-    rule = rule || {};
+  function lookupChar( char ){
+    if(char === '<'){ 
+      return 'required'; 
+    }else if(char === '['){ 
+      return 'optional';
+    }else if(char === '^'){ 
+      return 'xor';
+    }else if(char === '&'){ 
+      return 'group';
+    }else if(char === '|'){ 
+      return 'alias';
+    }else if(char === '@'){ 
+      return 'collect';
+    }else if(char === '?'){ 
+      return 'boolean';
+    }else if(char === '!'){ 
+      return 'demand';
+    }else if(char === '+'){ 
+      return 'increment';
+    }
+    return false;
+  }
 
-    var short,long;
-    var delim = charLookup[ flag[0] ] || false;
-
-    //lookahead for more delims
-    if( delim && !(delim === 'required' || delim === 'optional') && flag.length > 1 ){
-      ruleBuilder( flag.substr(1) , rule, data );
+  function ruleDelim( delim, rule ){
+    var section = rule[ delim ];
+    var undef   = ( typeof section === 'undefined');
+    if( delim ){
+      if( delim === 'group' || delim === 'xor' ){
+        if( undef ) section = rule[ delim ] = '';
+        rule[ delim ] = [ section, flag ].join('');
+      }
+      if( delim === 'required' || delim === 'optional' ){
+        if( rule['boolean'] ) throw new Error('Invalid Option');           
+        if( undef ) rule[ delim ] = 0;
+        rule[ delim ] += 1;
+      } 
+      if( delim === 'boolean' || delim === 'increment' ){
+        if( rule.required || rule.optional )  throw new Error('Invalid Option');  
+        if( rule.boolean  || rule.increment ) throw new Error('Invalid Option');
+        rule[ delim ]    = true;
+        rule[ 'canKey' ] = true; //allow -x=val
+        rule[ 'accept' ] = ( delim === 'boolean' ? 'boolean' : 'integer' );
+      }
+      if( delim === 'demand' ){
+        rule[ delim ] = true;
+      }
+      if( delim === 'collect' ){
+        console.warn('collect option not implemented');
+      }
     }
 
-    var type  = flagParser( flag );
-        flag  = flag.replace(/-|&|\^|\|\*/gm, '');
+  }
 
-    var section = rule[ type ] || rule[ delim ];
+
+
+  function findDelim( flag, rule, data ){
+    var len       = flag.length;
+    var delim     = lookupChar( flag[0] );
+    var lastDelim = lookupChar( flag[len-1] );
+    var flags     = flag.replace(alnumRegex,'');
+    delim = lastDelim || delim;
+    if( delim && !(delim === 'required' || delim === 'optional') && flag.length > 1 ){
+      ruleDelim( delim, rule )
+      findDelim( ( lastDelim ? flag.slice(-1) : flag.substr(1)) , rule, data );
+    }else{
+      ruleDelim( ( lastDelim ? flag.slice(-1) : flag.substr(1)), rule );
+    }
+
+  }
+
+  function findOption( flag, rule ){
+    rule = rule || {};
+
+    var type    = flagParser( flag );
+    var section = rule[ type ];
     var undef   = ( typeof section === 'undefined');
-
+    var flag    = flag.replace(charRegEx, '');   
     if( type ){
-
       if( type === 'short' || type === 'long' ){
         if( section ){
           rule.alias = rule.alias || [];        
@@ -54,39 +156,84 @@
           rule[ type ] = flag;
         }
       }
-
+      return true;
     }
+    return false;
+  }
+
+
+  function ruleBuilder( flag, rule, data ){
+    rule = rule || {};
+    findDelim ( flag, rule );
+    findOption( flag, rule );
+    
+  }
+
+
+
+  function _ruleBuilder( flag, rule, data ){
+    rule = rule || {};
+
+    //var short,long;
+    var len   = flag.length;
+    var delim = charLookup[ flag[0] ] || charLookup[ flag[len-1] ];
+    //console.log( 'delims', delim, flag);
+    ruleDelim( flag, rule, data );
+    //lookahead for more delims
+    // if( delim && !(delim === 'required' || delim === 'optional') && flag.length > 1 ){
+    //   ruleBuilder( flag.substr(1) , rule, data );
+    // }
+
+    var type  = flagParser( flag );
+        flag  = flag.replace(charRegEx, '');
+
+    //var section = rule[ type ] || rule[ delim ];
+    //var undef   = ( typeof section === 'undefined');
+
+    // if( type ){
+
+    //   if( type === 'short' || type === 'long' ){
+    //     if( section ){
+    //       rule.alias = rule.alias || [];        
+    //       rule.alias.push( flag );
+    //     }else{
+    //       rule[ type ] = flag;
+    //     }
+    //   }
+
+    // }
 
     //first char is not - and is not alnum
-    if( delim ){
+    // if( delim ){
 
-      if( delim === 'group'    || delim === 'xor' ){
-        if( undef ) section = rule[ delim ] = '';
-        rule[ delim ] = [ section, flag ].join('');
-      }
+    //   if( delim === 'group'    || delim === 'xor' ){
+    //     if( undef ) section = rule[ delim ] = '';
+    //     rule[ delim ] = [ section, flag ].join('');
+    //   }
 
-      if( delim === 'required' || delim === 'optional' ){
-        if( rule['boolean'] ) throw new Error('Invalid Option, boolean options cannot have arguments');           
-        if( undef ) rule[ delim ] = 0;
-        rule[ delim ] += 1;
-      } 
+    //   if( delim === 'required' || delim === 'optional' ){
+    //     if( rule['boolean'] ) throw new Error('Invalid Option, boolean options cannot have arguments');           
+    //     if( undef ) rule[ delim ] = 0;
+    //     rule[ delim ] += 1;
+    //   } 
 
-      if( delim === 'boolean' || delim === 'increment' ){
-        if( rule.required || rule.optional ) throw new Error('Invalid Option, options with argument-options cannot be auto-set (boolean/increment)');  
-        if( rule.boolean  || rule.increment )  throw new Error('Invalid Option, auto-set option already specified');
-        rule[ delim ]    = true;
-        rule[ 'canKey' ] = true; //allow -x=val
-      }
+    //   if( delim === 'boolean' || delim === 'increment' ){
+    //     if( rule.required || rule.optional ) throw new Error('Invalid Option, options with argument-options cannot be auto-set (boolean/increment)');  
+    //     if( rule.boolean  || rule.increment )  throw new Error('Invalid Option, auto-set option already specified');
+    //     rule[ delim ]    = true;
+    //     rule[ 'canKey' ] = true; //allow -x=val
+    //     rule[ 'accept' ] = ( delim === 'boolean' ? 'boolean' : 'integer' );
+    //   }
 
-      if( delim === 'demand' ){
-        rule[ delim ] = true;
-      }
+    //   if( delim === 'demand' ){
+    //     rule[ delim ] = true;
+    //   }
 
-      if( delim === 'collect' ){
-        console.warn('collect option not implemented');
-      }
+    //   if( delim === 'collect' ){
+    //     console.warn('collect option not implemented');
+    //   }
 
-    }
+    // }
 
     if( !delim && !type ) throw new Error('Invalid Option settings option('+ flag + type + ')');
 
@@ -152,5 +299,7 @@
     isNum       : isNum,
     flagParser  : flagParser,
     ruleBuilder : ruleBuilder,
-    autoload    : autoload
+    autoload    : autoload,
+    timer       : timer,
+    timers      : timers
   };
