@@ -32,6 +32,12 @@
 
     var short,long;
     var delim = charLookup[ flag[0] ] || false;
+
+    //lookahead for more delims
+    if( delim && !(delim === 'required' || delim === 'optional') && flag.length > 1 ){
+      ruleBuilder( flag.substr(1) , rule, data );
+    }
+
     var type  = flagParser( flag );
         flag  = flag.replace(/-|&|\^|\|\*/gm, '');
 
@@ -60,7 +66,6 @@
       }
 
       if( delim === 'required' || delim === 'optional' ){
-        console.log('building rule for req/optl', delim);
         if( rule['boolean'] ) throw new Error('Invalid Option, boolean options cannot have arguments');           
         if( undef ) rule[ delim ] = 0;
         rule[ delim ] += 1;
@@ -68,8 +73,13 @@
 
       if( delim === 'boolean' || delim === 'increment' ){
         if( rule.required || rule.optional ) throw new Error('Invalid Option, options with argument-options cannot be auto-set (boolean/increment)');  
+        if( rule.boolean  || rule.increment )  throw new Error('Invalid Option, auto-set option already specified');
         rule[ delim ]    = true;
         rule[ 'canKey' ] = true; //allow -x=val
+      }
+
+      if( delim === 'demand' ){
+        rule[ delim ] = true;
       }
 
       if( delim === 'collect' ){
@@ -87,6 +97,7 @@
   //tests showed str[] perf better than indexOf and RegEx
   function flagParser( flag ){
     var len = flag.length || 0;
+    if( !flag || len === 0 || flag[0] !== '-' ) return false;
     if( len >= 2 && flag[0] === '-'){
       //short flag
       if( flag[1] !== '-' ){ 

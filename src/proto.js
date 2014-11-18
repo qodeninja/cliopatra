@@ -48,7 +48,7 @@ module.exports = function( conf, util ){
 /////////////////////////////////////////////////////////////////////////////*/
 
 
-  Cliopatra.prototype.option = function( flag, type, desc, fn ){
+  Cliopatra.prototype.option = function( flag, desc, fn ){
 
     var data = this.data;
         flag = flag.replace(/\s+/g,' ').trim(); //remove duplicate whitespace
@@ -57,25 +57,27 @@ module.exports = function( conf, util ){
 
     for( var i=0, len = opts.length; i < len; i++ ){
       var opt = opts[i];
-      util.ruleBuilder( opt, rule, data );
-      if( desc ) rule.desc = desc;
-      if( fn   ) rule.fn   = fn;
+
+      try{
+        util.ruleBuilder( opt, rule, data );
+        if( desc ) rule.desc = desc;
+        if( fn   ) rule.fn   = fn;
+      }catch(err){
+        console.error('Clio parse failure at ('+opt+')', err.message);
+        process.exit(1);
+      }
+
     }
 
     //setup flags after rule is built
     var flags  = data.flags;
     var long   = rule['long'], short = rule['short'];
     var ruleID = data.rules.length || 0;
-
     if( short ) flags[ short ] = ruleID;
-
     if( long ){
-      console.log('see long option', conf);
-        
      flags[ long ] = ruleID;
       //create short from long
       if( conf['autoshort'] ){
-        console.log('see autoshort option');
         var sh = long[0];
         if( sh ){ flags[ sh ] = ruleID; }
         if( !short ){ rule['short'] = sh; }
