@@ -15,10 +15,10 @@
 #!/usr/bin/env node
 "use strict" 
   var clio      = require('cliopatra');
-  var program   = clio.option('-s= ^we &ui --silly', 'description')
-                      .option('-c, --color [ flag ]') 
-                      .option('-v, --verbose [ flag ]')
-                      .parse( process.argv );
+  var program   = clio.enable('autoshort')
+                      .option('--short ! <arg1> <arg2>', 'This is a required flag with 2 reqd args')
+                      .option('--trial ?!', 'This is a required boolean flag' )
+                      .argv();
 
   program.run();
 ```
@@ -35,7 +35,7 @@
 
 Cliopatra can be configured to use short-cut arguments and automatically parse and load option rules from an object or a JSON file to make some aspects of your executable more automated.
 
-### Cliopatra#settings( String[,String...] )
+### Cliopatra#enable( String[,String...] )
 
 * AUTO_SHORT
 * AUTO_BOOLEAN
