@@ -9,6 +9,21 @@
     //check for ../conf/clio.json
   }
 
+  function readline( prompt ){
+      process.stdin.setEncoding('utf8');
+
+      process.stdin.on('readable', function() {
+        var chunk = process.stdin.read();
+        if (chunk !== null) {
+          process.stdout.write('data: ' + chunk);
+        }
+      });
+
+      process.stdin.on('end', function() {
+        process.stdout.write('end');
+      });
+  }
+
 /*/////////////////////////////////////////////////////////////////////////////
 // Timer
 /////////////////////////////////////////////////////////////////////////////*/
@@ -226,6 +241,7 @@
     flagParser  : flagParser,
     ruleBuilder : ruleBuilder,
     autoload    : autoload,
+    readline    : readline,
     timer       : timer,
     timers      : timers
   };

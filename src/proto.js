@@ -25,6 +25,9 @@ module.exports = function( conf, util ){
 
   var timer  = util.timer;
   var timers = util.timers;
+  var readline  = util.readline;
+  var log = console.log;
+
 
   function Cliopatra( spec ){
     spec = spec || {};
@@ -44,6 +47,12 @@ module.exports = function( conf, util ){
   Cliopatra.prototype.getRuleByFlag = function( flag ){
 
   }
+
+  Cliopatra.prototype.getPrompt = function( prompt, endCommand  ){
+    var readline = util.readline;
+    readline( '>>' );
+  }
+
 
   Cliopatra.prototype.addFlag = function( rule ){
     if( !rule ) return false;
@@ -107,6 +116,7 @@ module.exports = function( conf, util ){
   Cliopatra.prototype.enable = function( key ){
     key = key.toLowerCase();
     if( !util.isUndefined( conf[key]) ) conf[key] = true;
+    log( key, 'enabled' );
     return this;
   }
 
@@ -127,6 +137,7 @@ module.exports = function( conf, util ){
   Cliopatra.prototype.parse = function( data ){
     console.log('yay parse');
     var data = this.data;
+    if( conf['interactive'] ) this.getPrompt('c> ');
     return this;
   }
 
