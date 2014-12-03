@@ -9,19 +9,76 @@
     //check for ../conf/clio.json
   }
 
-  function readline( prompt ){
-      process.stdin.setEncoding('utf8');
+  //note:this can probably be its own module
+  function readline( prompt, dispatcher ){
 
-      process.stdin.on('readable', function() {
-        var chunk = process.stdin.read();
-        if (chunk !== null) {
-          process.stdout.write('data: ' + chunk);
-        }
-      });
+    var sti = process.stdin;
+    var sto = process.stdout;
 
-      process.stdin.on('end', function() {
-        process.stdout.write('end');
-      });
+    var pr = prompt;
+
+    var evt = {
+      readable : onReadable,
+      command  : onCommand,
+      error    : onFinish,
+      end      : onFinish
+    };
+
+    //iterate over evt obj and setup or teardown eventhanlders
+    function listeners( enable ){
+      for(var key in evt) sti[ ( enable ? 'on' : 'removeListener' ) ]( key, evt[key] );
+      if(!enable){
+        sti = null;
+        sto = null;
+        console.log('shutting down reader');
+      }
+    }
+
+    function getPrompt( p ){
+      p = p || pr;
+      sto.write( p );
+    }
+
+    //on user input pass chunks to handler or emit command to dispatcher
+    function onReadable(){
+      var ctrl  = dispatcher;
+      var chunk = sti.read();
+      if( chunk !== null ){
+        //chunk response
+        if( typeof ctrl === 'function' ) return ctrl(chunk, getPrompt);
+        sti.emit('command', chunk, ctrl );
+        getPrompt();
+      }
+    }
+
+    //let the dispatcher handle the command or just dump to stdo
+    function onCommand( command, dispatcher ){
+      if( dispatcher && dispatcher.command ){
+        var ret = dispatcher.command(command, getPrompt);
+        if(!ret) onFinish();
+      }
+      sto.write( 'command -- ' + command );
+    }
+
+    //cleanup on err or end
+    function onFinish( err ){
+      listeners( false );
+      if( err ){
+        console.error( err );
+      }
+    }
+
+    //hard kill
+    process.on('SIGINT', function() {
+      console.log('\nExiting...');
+      //process.kill(process.pid, 'SIGUSR2');
+      process.exit();
+    });
+
+    listeners( true );
+    sti.setEncoding('utf8');
+    sto.write( pr );
+
   }
 
 /*/////////////////////////////////////////////////////////////////////////////

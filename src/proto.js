@@ -35,6 +35,9 @@ module.exports = function( conf, util ){
     return this;
   };
 
+  Cliopatra.prototype.dispatcher = function( chunk, read ){
+    process.stdout.write('dispatch chunk: ' + chunk);
+  }
 
   Cliopatra.prototype.getRule = function(){
 
@@ -50,7 +53,7 @@ module.exports = function( conf, util ){
 
   Cliopatra.prototype.getPrompt = function( prompt, endCommand  ){
     var readline = util.readline;
-    readline( '>>' );
+    readline( 'clio> ' );
   }
 
 
@@ -137,7 +140,7 @@ module.exports = function( conf, util ){
   Cliopatra.prototype.parse = function( data ){
     console.log('yay parse');
     var data = this.data;
-    if( conf['interactive'] ) this.getPrompt('c> ');
+    if( conf['interactive'] ) this.getPrompt('c> ', this.dispatcher);
     return this;
   }
 
