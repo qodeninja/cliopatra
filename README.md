@@ -7,7 +7,6 @@
     $ npm install cliopatra
 
 
-
 ## Quick Start Example
 
 
